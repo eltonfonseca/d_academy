@@ -1,0 +1,52 @@
+version: '3.7'
+services:
+  web:
+    container_name: web
+    tty: true
+    stdin_open: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+    volumes:
+      - .:/umbrella
+    expose:
+      - 4000
+    environment:
+      - MIX_ENV=dev
+    depends_on:
+      - db
+    networks:
+      - webapp
+
+  db:
+    container_name: db
+    image: postgres:11.5
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - webapp
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+
+  tests:
+    container_name: tests
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: mix do coveralls
+    environment:
+      - MIX_ENV=test
+    volumes:
+      - .:/umbrella
+    depends_on:
+      - db
+    networks:
+      - webapp
+
+
+networks:
+  webapp:
